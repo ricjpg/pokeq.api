@@ -18,7 +18,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-RUN rm .env
+RUN test -f .env && rm .env || echo "no .env file found"
 
 EXPOSE 8000
 

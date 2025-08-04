@@ -4,7 +4,7 @@ import logging
 from fastapi import HTTPException
 from models.PokeRequest import PokemonRequest
 from utils.database import execute_query_json
-from utils.AQueue import AQueue, AQueueDelete
+from utils.AQueue import AQueue
 from utils.ABlob import ABlob
 
 
@@ -13,7 +13,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-async def select_pokemon_request( id: int ) -> dict:
+async def select_pokemon_request( id: int ):
     try:
         query = "select * from pokeqdb.requests where id = ?"
         params = (id,)
@@ -76,25 +76,20 @@ async def get_all_request() -> dict:
         record['url'] = f"{record['url']}?{blob.generate_sas(id)}"
     return result_dict
 
-
-async def delete_pokemon_request( id:int) -> dict:
+async def delete_request(id:int):
     try:
-        query = " select max(id) as id from pokeqdb.requests where id = ? "
-        query_delete = " delete from pokeqdb.requests where id = ? "
-
-        params = ( id,  )
+        query = "select * from pokeqdb.requests where id = ?"
+        params = (id,)
         result = await execute_query_json( query , params )
-        result_dict = json.loads(result)
-        print(f"result: {result}")
-        print(f"result_dict: {result_dict}")
-        if not result_dict:
-            return {"status: ":"Not found"}
-        else:
-            await execute_query_json(query_delete, params, True)
-            await AQueueDelete().insert_delete_message( result )
-            return {f"status: ":f"Blob file poke_report_{id}.csv and db record deleted"}
-
+        record = json.loads(result)
+        if not record:
+            return {f"El registro con id: ": f"{id}"}
+        query = "delete from pokeqdb.requests where id = ?"
+        params = (id,)
+        result = await execute_query_json( query , params)
+        record = f"Deleted"
+        return record
     except Exception as e:
-        logger.error( f"Error selecting report reques {e}" )
+        logger.error( f"Error searching report request {e}" )
         raise HTTPException( status_code=500 , detail="Internal Server Error" )
     

@@ -1,8 +1,8 @@
 import uvicorn
 import json
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from utils.database import execute_query_json
-from controllers.PokeRequestController import insert_pokemon_request, update_pokemon_request, select_pokemon_request, get_all_request
+from controllers.PokeRequestController import delete_pokemon_request, insert_pokemon_request, update_pokemon_request, select_pokemon_request, get_all_request, delete_pokemon_request
 from models.PokeRequest import PokemonRequest
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -24,12 +24,17 @@ async def root():
 
 @app.get("/api/version")
 async def version():
-    return { "version":  "0.3.1" }
+    return { "version":  "1.1.0" }
 
 
 @app.get("/api/request/{id}")
 async def select_request(id: int):
     return await select_pokemon_request(id)
+
+@app.delete("/api/request/{id}")
+async def delete_report(id: int):
+    return await delete_pokemon_request(id)
+    
 
 @app.get("/api/request")
 async def select_all_request():
