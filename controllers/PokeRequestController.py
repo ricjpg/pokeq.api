@@ -6,6 +6,7 @@ from models.PokeRequest import PokemonRequest
 from utils.database import execute_query_json
 from utils.AQueue import AQueue, AQueueDelete
 from utils.ABlob import ABlob
+from fastapi.responses import JSONResponse
 
 
 # configurar el logging
@@ -42,8 +43,10 @@ async def update_pokemon_request( pokemon_request: PokemonRequest) -> dict:
 
 async def insert_pokemon_request( pokemon_request: PokemonRequest) -> dict:
     try:
-        query = " exec pokeqdb.create_poke_request ? "
-        params = ( pokemon_request.pokemon_type,  )
+        query = " exec pokeqdb.create_poke_request ?, ?"
+        if not pokemon_request.sample_size:
+            pokemon_request.sample_size=0
+        params = ( pokemon_request.pokemon_type, pokemon_request.sample_size )
         result = await execute_query_json( query , params, True )
         result_dict = json.loads(result)
 
@@ -77,24 +80,35 @@ async def get_all_request() -> dict:
     return result_dict
 
 
-async def delete_pokemon_request( id:int) -> dict:
+async def delete_pokemon_request( id:int):
     try:
-        query = " select max(id) as id from pokeqdb.requests where id = ? "
-        query_delete = " delete from pokeqdb.requests where id = ? "
+        query_check = "SELECT id AS id FROM pokeqdb.requests WHERE id = ?"
+        query_delete = "DELETE FROM pokeqdb.requests WHERE id = ?"
+        params = (id,)
 
-        params = ( id,  )
-        result = await execute_query_json( query , params )
+        # Verificar si existe el registro
+        result = await execute_query_json(query_check, params)
         result_dict = json.loads(result)
-        print(f"result: {result}")
-        print(f"result_dict: {result_dict}")
+        backup = {
+            'id':id
+        }
+        print(f"akjskdnamsd+++++++++++: {result}")
+        print(f"akjskdnamsd+++++++++++: {result_dict}")
         if not result_dict:
-            return {"status: ":"Not found"}
-        else:
-            await execute_query_json(query_delete, params, True)
-            await AQueueDelete().insert_delete_message( result )
-            return {f"status: ":f"Blob file poke_report_{id}.csv and db record deleted"}
+            await AQueueDelete().insert_delete_message(f"[{backup}]")
+            raise HTTPException(status_code=404, detail="Report not found")
 
+        # Eliminar el registro si existe
+        await execute_query_json(query_delete, params, True)
+        await AQueueDelete().insert_delete_message(result)
+
+        # Retornar mensaje de éxito
+        return {
+            "message": f"Blob file poke_report_{id}.csv and DB record deleted"
+        }
+
+    except HTTPException:
+        raise  # Re-lanzar excepciones HTTP si ya fueron lanzadas arriba
     except Exception as e:
-        logger.error( f"Error selecting report reques {e}" )
-        raise HTTPException( status_code=500 , detail="Internal Server Error" )
-    
+        logger.error(f"Error deleting report request: {e}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")

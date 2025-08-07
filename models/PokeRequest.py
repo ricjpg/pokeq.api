@@ -26,3 +26,8 @@ class PokemonRequest(BaseModel):
         description="Estado de la peticion",
         pattern="^(sent|completed|failed|inprogress)$"
     )
+    sample_size: Optional[int] = Field(
+        default=0,
+        ge=0,
+        description="Numero maximo de registros"
+    )
