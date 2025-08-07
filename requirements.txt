@@ -4,11 +4,3 @@ python-dotenv
 pyodbc
 azure-storage-queue==12.11.0
 azure-storage-blob==12.22.0
-
-
-[{"id": 38, 
-"type": "ghost", 
-"id_status": 3, 
-"url": "https://sapokeqdev.blob.core.windows.net/reportes/poke_report_38.csv", 
-"created": "2025-08-04 20:24:33.393000", 
-"updated": "2025-08-04 20:24:35.877000"}]
