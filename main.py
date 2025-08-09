@@ -24,7 +24,11 @@ async def root():
 
 @app.get("/api/version")
 async def version():
-    return { "version":  "1.1.0" }
+    return { "version":  "2.1.0" }
+
+@app.get("/api/version2")
+async def version2():
+    return { "version":  "prueba agosto" }
 
 
 @app.get("/api/request/{id}")

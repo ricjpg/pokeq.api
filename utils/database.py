@@ -11,8 +11,7 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-driver = '/opt/homebrew/lib/libmsodbcsql.17.dylib'
-driver2 = '/opt/homebrew/lib/libmsodbcsql.17.dylib'
+driver = os.getenv('SQL_DRIVER')
 server = os.getenv('SQL_SERVER')
 database = os.getenv('SQL_DATABASE')
 username = os.getenv('SQL_USERNAME')
@@ -22,6 +21,9 @@ connection_string = f"DRIVER={driver};SERVER={server};DATABASE={database};UID={u
 
 
 async def get_db_connection():
+    driver = os.getenv('SQL_DRIVER')
+    print('DRIVER:------------------------')
+    print(connection_string)
     try:
         logger.info(f"Intentando conectar a la base de datos...")
         conn = pyodbc.connect(connection_string, timeout=10)
